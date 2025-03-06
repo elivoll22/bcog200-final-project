@@ -1,3 +1,6 @@
-# testing'
-
-1. asdf
+A brief (3-5 sentences) description of your planned project
+I will create a simple memory card game with colors. The goal will be to match as many cards as fast as possible. The machine will keep track of each participant's time spent to track data regarding age, gender, and completion time. To add a visual perception level, all of the cards that are used for matching will be similar shades. 
+a, b, c. For each of three functions, a very brief (1-2 sentences) description of what the function will do.
+I’ll be using the time function to keep track of how long it takes for a player to complete the task using start_timer() and stop_timer().
+I’ll be using card functions, like generate_cards() and shuffle_cards() to produce the cards I need and shuffle them accordingly. Functions like flip_card() and check_match() will help the game run in a way that makes sense like a normal memory game.
+I will also be be using calculate functions to calculate the average times by age and gender. This is keep track of the data I am trying to pull. 
