@@ -88,7 +88,7 @@ class CardGame:
             bg="#efcbf5",
         )
 
-        self.moves_label.grid(row=0, column=0, columnspan=4, pady=10)
+        self.moves_label.grid(row=0, column=0, columnspan=4, pady=20)
 
         self.win_label = tk.Label(
             self.game_frame, text="You won!", font=("Helvetica", 32), bg="#fae6f7"
@@ -102,7 +102,7 @@ class CardGame:
             command=self.restart_game,
         )
 
-        self.restart_button.grid(row=5, column=0, columnspan=4, pady=10)
+        self.restart_button.grid(row=6, column=0, columnspan=4, pady=20)
 
         self.load_images()
         self.show_cards()
@@ -146,8 +146,10 @@ class CardGame:
                 command=lambda idx=i: self.flip_card(idx),
                 width=100,
                 height=100,
+                padx=10,
+                pady=10,
             )
-            button.grid(row=i // 4 + 1, column=i % 4, padx=5, pady=5)
+            button.grid(row=i // 4 + 1, column=i % 4, padx=10, pady=10)
             self.card_data.append(
                 {
                     "image_path": img_path,
@@ -195,7 +197,7 @@ class CardGame:
         self.moves_label.config(text=f"Moves: {self.moves}")
 
         if self.matched_pairs == len(card_images):
-            self.win_label.grid(row=4, column=0, columnspan=4, pady=20)
+            self.win_label.grid(row=5, column=0, columnspan=4, pady=30)
 
     def restart_game(self):
         self.destroy()
