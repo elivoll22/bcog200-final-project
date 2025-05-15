@@ -2,8 +2,6 @@ import tkinter as tk
 import os
 import random
 from PIL import Image, ImageTk
-from tkinter import PhotoImage
-
 
 card_images = [
     "images/bob.png",
@@ -20,58 +18,50 @@ back_image = "images/back_image.png"
 
 class StartPage(tk.Frame):
     def __init__(self, root):
+        tk.Frame.__init__(self, root, bg="purple")
         self.root = root
-        self.root.title("Memory Game")
-        self.root.geometry("800x600")
-        self.root.configure(bg="purple")
+        self.grid(row=0, column=0, sticky="nsew")
 
-        self.root.grid_columnconfigure(0, weight=1)
         self.root.grid_rowconfigure(0, weight=1)
-        self.root.grid_rowconfigure(1, weight=1)
-        self.root.grid_rowconfigure(2, weight=1)
+        self.root.grid_columnconfigure(0, weight=1)
 
-        self.background_label = tk.Label(
-            self.root,
+        start_frame = tk.Frame(self, bg="purple")
+        start_frame.place(relx=0.5, rely=0.5, anchor="center")
+
+        title_label = tk.Label(
+            start_frame,
             text="Memory Game",
             font=("Helvetica", 32, "bold"),
             bg="purple",
             fg="white",
         )
+        title_label.pack(pady=20)
 
-        self.background_label.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
-        self.start_button = tk.Button(
-            self.root,
+        start_button = tk.Button(
+            start_frame,
             text="Start Game",
             font=("Helvetica", 16),
             command=self.start_game,
             padx=10,
-            pady=2,
+            pady=5,
         )
-
-        self.start_button.grid(row=2, column=0, sticky="nsew", padx=20, pady=20)
+        start_button.pack()
 
     def start_game(self):
-        self.background_label.destroy()
-        self.start_button.destroy()
+        self.destroy()
         self.game = CardGame(self.root)
 
 
 class CardGame:
     def __init__(self, root):
         self.root = root
-        self.root.title("Card Flip Game")
         self.game_frame = tk.Frame(root, background="#fae6f7")
         self.game_frame.grid(row=0, column=0, sticky="nsew")
 
-        self.game_frame.grid_columnconfigure(0, weight=1)
-        self.game_frame.grid_rowconfigure(0, weight=0)  # Moves label
-        self.game_frame.grid_rowconfigure(1, weight=0)  # Cards row 1
-        self.game_frame.grid_rowconfigure(2, weight=0)  # Cards row 2
-        self.game_frame.grid_rowconfigure(3, weight=0)  # Cards row 3
-        self.game_frame.grid_rowconfigure(4, weight=0)  # Cards row 4
-        self.game_frame.grid_rowconfigure(5, weight=0)  # Win label
-        self.game_frame.grid_rowconfigure(6, weight=0)  # Restart button
-        self.game_frame.grid_rowconfigure(7, weight=1)
+        for r in range(8):
+            self.game_frame.grid_rowconfigure(r, weight=0)
+        for c in range(4):
+            self.game_frame.grid_columnconfigure(c, weight=1)
 
         self.cards = []
         self.selected_cards = []
@@ -80,6 +70,7 @@ class CardGame:
         self.card_data = []
         self.front_images = []
         self.back_img = None
+        self.blocked = False
 
         self.moves_label = tk.Label(
             self.game_frame,
@@ -87,22 +78,17 @@ class CardGame:
             font=("Helvetica", 14),
             bg="#efcbf5",
         )
-
         self.moves_label.grid(row=0, column=0, columnspan=4, pady=20)
-
-        self.win_label = tk.Label(
-            self.game_frame, text="You won!", font=("Helvetica", 32), bg="#fae6f7"
-        )
 
         self.restart_button = tk.Button(
             self.game_frame,
-            text="Restart",
+            text="Restart Game",
             font=("Helvetica", 14),
-            bg="lightgrey",
             command=self.restart_game,
+            padx=10,
+            pady=5,
         )
-
-        self.restart_button.grid(row=6, column=0, columnspan=4, pady=20)
+        self.restart_button.grid(row=8, column=0, columnspan=4, pady=20)
 
         self.load_images()
         self.show_cards()
@@ -161,6 +147,9 @@ class CardGame:
             )
 
     def flip_card(self, idx):
+        if self.blocked:
+            return
+
         card = self.card_data[idx]
         if card["flipped"] or card["matched"] or not card["image"]:
             return
@@ -170,6 +159,7 @@ class CardGame:
         self.selected_cards.append(idx)
 
         if len(self.selected_cards) == 2:
+            self.blocked = True
             self.root.after(1000, self.check_match)
 
     def check_match(self):
@@ -177,48 +167,39 @@ class CardGame:
             return
 
         idx1, idx2 = self.selected_cards
-        card1_path = self.card_data[idx1]["image_path"]
-        card2_path = self.card_data[idx2]["image_path"]
+        card1 = self.card_data[idx1]
+        card2 = self.card_data[idx2]
 
-        if card1_path == card2_path:
-            self.card_data[idx1]["matched"] = True
-            self.card_data[idx2]["matched"] = True
-            self.card_data[idx1]["button"].config(state=tk.DISABLED)
-            self.card_data[idx2]["button"].config(state=tk.DISABLED)
+        if card1["image_path"] == card2["image_path"]:
+            card1["matched"] = True
+            card2["matched"] = True
+            card1["button"].config(state=tk.DISABLED)
+            card2["button"].config(state=tk.DISABLED)
             self.matched_pairs += 1
         else:
-            self.card_data[idx1]["button"].config(image=self.back_img)
-            self.card_data[idx2]["button"].config(image=self.back_img)
-            self.card_data[idx1]["flipped"] = False
-            self.card_data[idx2]["flipped"] = False
+            card1["button"].config(image=self.back_img)
+            card2["button"].config(image=self.back_img)
+            card1["flipped"] = False
+            card2["flipped"] = False
 
         self.selected_cards.clear()
         self.moves += 1
         self.moves_label.config(text=f"Moves: {self.moves}")
-
-        if self.matched_pairs == len(card_images):
-            self.win_label.grid(row=5, column=0, columnspan=4, pady=30)
+        self.blocked = False
 
     def restart_game(self):
-        self.destroy()
+        # Destroy the current game frame
+        self.game_frame.destroy()
+        # Create a new instance of the CardGame
         self.__init__(self.root)
-        # self.moves = 0
-        # self.matched_pairs = 0
-        # self.moves_label.config(text=f"Moves: {self.moves}")
-        # self.win_label.pack_forget()
-        # self.load_images()
-
-        # for widget in self.game_frame.winfo_children():
-        #     if isinstance(widget, tk.Button):
-        #         widget.destroy()
-
-        # self.show_cards()
 
 
 if __name__ == "__main__":
     root = tk.Tk()
-    start_page = StartPage(root)
-    # start_page.grid(row=0, column=0, sticky="nsew")  # Place StartPage in root
-    # root.grid_columnconfigure(0, weight=1)
-    # root.grid_rowconfigure(0, weight=1)
+    root.title("Memory Game")
+    root.geometry("800x600")
+    root.configure(bg="purple")
+    root.grid_rowconfigure(0, weight=1)
+    root.grid_columnconfigure(0, weight=1)
+    StartPage(root)
     root.mainloop()
